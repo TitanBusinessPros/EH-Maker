@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PolicyPro - Handbook Builder</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --accent: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4cc9f0;
+            --warning: #ffb800;
+            --info: #4895ef;
+            --danger: #f72585;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .tagline {
+            color: var(--gray);
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+        
+        .app-container {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .form-container {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .preview-container {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .step-indicator::before {
+            content: '';
+            position: absolute;
+            height: 4px;
+            width: 100%;
+            background: var(--light-gray);
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1;
+        }
+        
+        .step {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border: 4px solid var(--light-gray);
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+        
+        .step.completed {
+            border-color: var(--success);
+            background: var(--success);
+            color: white;
+        }
+        
+        .step-form {
+            display: none;
+        }
+        
+        .step-form.active {
+            display: block;
+        }
+        
+        .form-title {
+            margin-bottom: 20px;
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--light-gray);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .checkbox-item input {
+            width: auto;
+        }
+        
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-prev {
+            background: var(--light-gray);
+            color: var(--dark);
+        }
+        
+        .btn-prev:hover {
+            background: #dcdde1;
+        }
+        
+        .btn-next {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-next:hover {
+            background: var(--secondary);
+        }
+        
+        .btn-export {
+            background: var(--success);
+            color: white;
+            margin-top: 20px;
+        }
+        
+        .btn-export:hover {
+            background: #3a9bc5;
+        }
+        
+        .preview-title {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+        
+        .handbook-preview {
+            flex: 1;
+            border: 1px solid var(--light-gray);
+            border-radius: 8px;
+            padding: 20px;
+            overflow-y: auto;
+            background: #fff;
+        }
+        
+        .handbook-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--light-gray);
+        }
+        
+        .handbook-content {
+            line-height: 1.6;
+        }
+        
+        .policy-section {
+            margin-bottom: 25px;
+        }
+        
+        .policy-title {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+        
+        .export-options {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+        
+        .export-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+        }
+        
+        .html-export {
+            background: var(--info);
+        }
+        
+        .pdf-export {
+            background: var(--danger);
+        }
+        
+        .png-export {
+            background: var(--warning);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            background: var(--success);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(100vw);
+            transition: transform 0.3s ease-out;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+            }
+            
+            .export-options {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PolicyPro Handbook Builder</h1>
+            <p class="tagline">Create professional employee handbooks in minutes</p>
+        </header>
+        
+        <div class="app-container">
+            <div class="form-container">
+                <div class="step-indicator">
+                    <div class="step active" id="step-1">1</div>
+                    <div class="step" id="step-2">2</div>
+                    <div class="step" id="step-3">3</div>
+                    <div class="step" id="step-4">4</div>
+                    <div class="step" id="step-5">5</div>
+                </div>
+                
+                <form id="handbook-form">
+                    <!-- Step 1: Company Information -->
+                    <div class="step-form active" id="form-step-1">
+                        <h2 class="form-title">Company Information</h2>
+                        
+                        <div class="form-group">
+                            <label for="company-name">Company Name</label>
+                            <input type="text" id="company-name" placeholder="Enter your company name">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="company-address">Company Address</label>
+                            <textarea id="company-address" placeholder="Enter your company address"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="company-website">Company Website</label>
+                            <input type="url" id="company-website" placeholder="https://example.com">
+                        </div>
+                        
+                        <div class="btn-container">
+                            <div></div> <!-- Empty div for spacing -->
+                            <button type="button" class="btn-next" onclick="nextStep(1)">Next</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Employment Policies -->
+                    <div class="step-form" id="form-step-2">
+                        <h2 class="form-title">Employment Policies</h2>
+                        
+                        <div class="form-group">
+                            <label for="work-hours">Standard Work Hours</label>
+                            <input type="text" id="work-hours" placeholder="e.g., 9:00 AM - 5:00 PM, Monday to Friday">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="attendance-policy">Attendance Policy</label>
+                            <textarea id="attendance-policy" placeholder="Describe your attendance policy..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="remote-policy">Remote Work Policy</label>
+                            <textarea id="remote-policy" placeholder="Describe your remote work policy..."></textarea>
+                        </div>
+                        
+                        <div class="btn-container">
+                            <button type="button" class="btn-prev" onclick="prevStep(2)">Previous</button>
+                            <button type="button" class="btn-next" onclick="nextStep(2)">Next</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: Leave Policies -->
+                    <div class="step-form" id="form-step-3">
+                        <h2 class="form-title">Leave Policies</h2>
+                        
+                        <div class="form-group">
+                            <label for="vacation-policy">Vacation Policy</label>
+                            <textarea id="vacation-policy" placeholder="Describe your vacation policy..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sick-leave">Sick Leave Policy</label>
+                            <textarea id="sick-leave" placeholder="Describe your sick leave policy..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Other Leave Types</label>
+                            <div class="checkbox-group">
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="maternity-leave">
+                                    <label for="maternity-leave">Maternity Leave</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="paternity-leave">
+                                    <label for="paternity-leave">Paternity Leave</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="bereavement-leave">
+                                    <label for="bereavement-leave">Bereavement Leave</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="btn-container">
+                            <button type="button" class="btn-prev" onclick="prevStep(3)">Previous</button>
+                            <button type="button" class="btn-next" onclick="nextStep(3)">Next</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 4: Code of Conduct -->
+                    <div class="step-form" id="form-step-4">
+                        <h2 class="form-title">Code of Conduct</h2>
+                        
+                        <div class="form-group">
+                            <label for="dress-code">Dress Code</label>
+                            <textarea id="dress-code" placeholder="Describe your dress code policy..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="ethical-guidelines">Ethical Guidelines</label>
+                            <textarea id="ethical-guidelines" placeholder="Describe your ethical guidelines..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="social-media">Social Media Policy</label>
+                            <textarea id="social-media" placeholder="Describe your social media policy..."></textarea>
+                        </div>
+                        
+                        <div class="btn-container">
+                            <button type="button" class="btn-prev" onclick="prevStep(4)">Previous</button>
+                            <button type="button" class="btn-next" onclick="nextStep(4)">Next</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 5: Finalize -->
+                    <div class="step-form" id="form-step-5">
+                        <h2 class="form-title">Finalize Handbook</h2>
+                        
+                        <div class="form-group">
+                            <label for="handbook-title">Handbook Title</label>
+                            <input type="text" id="handbook-title" placeholder="e.g., Employee Handbook 2023">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="effective-date">Effective Date</label>
+                            <input type="date" id="effective-date">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="additional-notes">Additional Notes</label>
+                            <textarea id="additional-notes" placeholder="Any additional information..."></textarea>
+                        </div>
+                        
+                        <div class="btn-container">
+                            <button type="button" class="btn-prev" onclick="prevStep(5)">Previous</button>
+                            <button type="button" class="btn-next" onclick="generateHandbook()">Generate Handbook</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="preview-container">
+                <h2 class="preview-title">Handbook Preview</h2>
+                <div class="handbook-preview" id="handbook-preview">
+                    <div class="handbook-header">
+                        <h1>Your Handbook Preview</h1>
+                        <p>Complete the form to generate your policy handbook</p>
+                    </div>
+                    <div class="handbook-content">
+                        <p>As you fill out the form on the left, your handbook will appear here in real-time.</p>
+                        <p>You'll be able to export it as HTML, PDF, or PNG when complete.</p>
+                    </div>
+                </div>
+                
+                <div class="export-options">
+                    <button class="export-btn html-export" onclick="exportHTML()">
+                        <i class="fas fa-code"></i> Export HTML
+                    </button>
+                    <button class="export-btn pdf-export" onclick="exportPDF()">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </button>
+                    <button class="export-btn png-export" onclick="exportPNG()">
+                        <i class="fas fa-image"></i> Export PNG
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification">
+        Export completed successfully!
+    </div>
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 5;
+        
+        function updateStepIndicator() {
+            // Update step indicators
+            for (let i = 1; i <= totalSteps; i++) {
+                const stepElement = document.getElementById(`step-${i}`);
+                if (i < currentStep) {
+                    stepElement.className = 'step completed';
+                } else if (i === currentStep) {
+                    stepElement.className = 'step active';
+                } else {
+                    stepElement.className = 'step';
+                }
+            }
+            
+            // Show current form step
+            document.querySelectorAll('.step-form').forEach(form => {
+                form.classList.remove('active');
+            });
+            document.getElementById(`form-step-${currentStep}`).classList.add('active');
+            
+            // Update preview as user fills the form
+            updatePreview();
+        }
+        
+        function nextStep(step) {
+            if (step < totalSteps) {
+                currentStep = step + 1;
+                updateStepIndicator();
+            }
+        }
+        
+        function prevStep(step) {
+            if (step > 1) {
+                currentStep = step - 1;
+                updateStepIndicator();
+            }
+        }
+        
+        function updatePreview() {
+            const previewElement = document.getElementById('handbook-preview');
+            const companyName = document.getElementById('company-name').value || 'Company Name';
+            const handbookTitle = document.getElementById('handbook-title').value || 'Employee Handbook';
+            
+            if (currentStep === 1 && !companyName) {
+                return; // Don't update preview if we're on step 1 and no company name is entered
+            }
+            
+            let previewHTML = `
+                <div class="handbook-header">
+                    <h1>${handbookTitle}</h1>
+                    <h2>${companyName}</h2>
+                    <p>Effective: ${document.getElementById('effective-date').value || 'Date not set'}</p>
+                </div>
+                <div class="handbook-content">
+            `;
+            
+            // Add company information
+            if (document.getElementById('company-name').value) {
+                previewHTML += `
+                    <div class="policy-section">
+                        <h3 class="policy-title">Company Information</h3>
+                        <p><strong>Company Name:</strong> ${document.getElementById('company-name').value}</p>
+                        <p><strong>Address:</strong> ${document.getElementById('company-address').value || 'Not specified'}</p>
+                        <p><strong>Website:</strong> ${document.getElementById('company-website').value || 'Not specified'}</p>
+                    </div>
+                `;
+            }
+            
+            // Add employment policies if available
+            if (document.getElementById('work-hours').value || document.getElementById('attendance-policy').value) {
+                previewHTML += `
+                    <div class="policy-section">
+                        <h3 class="policy-title">Employment Policies</h3>
+                        <p><strong>Work Hours:</strong> ${document.getElementById('work-hours').value || 'Not specified'}</p>
+                        <p><strong>Attendance Policy:</strong> ${document.getElementById('attendance-policy').value || 'Not specified'}</p>
+                        <p><strong>Remote Work Policy:</strong> ${document.getElementById('remote-policy').value || 'Not specified'}</p>
+                    </div>
+                `;
+            }
+            
+            // Add leave policies if available
+            if (document.getElementById('vacation-policy').value || document.getElementById('sick-leave').value) {
+                previewHTML += `
+                    <div class="policy-section">
+                        <h3 class="policy-title">Leave Policies</h3>
+                        <p><strong>Vacation Policy:</strong> ${document.getElementById('vacation-policy').value || 'Not specified'}</p>
+                        <p><strong>Sick Leave Policy:</strong> ${document.getElementById('sick-leave').value || 'Not specified'}</p>
+                        <p><strong>Other Leave Types:</strong> 
+                `;
+                
+                const leaveTypes = [];
+                if (document.getElementById('maternity-leave').checked) leaveTypes.push('Maternity Leave');
+                if (document.getElementById('paternity-leave').checked) leaveTypes.push('Paternity Leave');
+                if (document.getElementById('bereavement-leave').checked) leaveTypes.push('Bereavement Leave');
+                
+                previewHTML += leaveTypes.join(', ') || 'None selected';
+                previewHTML += `</p></div>`;
+            }
+            
+            // Add code of conduct if available
+            if (document.getElementById('dress-code').value || document.getElementById('ethical-guidelines').value) {
+                previewHTML += `
+                    <div class="policy-section">
+                        <h3 class="policy-title">Code of Conduct</h3>
+                        <p><strong>Dress Code:</strong> ${document.getElementById('dress-code').value || 'Not specified'}</p>
+                        <p><strong>Ethical Guidelines:</strong> ${document.getElementById('ethical-guidelines').value || 'Not specified'}</p>
+                        <p><strong>Social Media Policy:</strong> ${document.getElementById('social-media').value || 'Not specified'}</p>
+                    </div>
+                `;
+            }
+            
+            // Add additional notes if available
+            if (document.getElementById('additional-notes').value) {
+                previewHTML += `
+                    <div class="policy-section">
+                        <h3 class="policy-title">Additional Notes</h3>
+                        <p>${document.getElementById('additional-notes').value}</p>
+                    </div>
+                `;
+            }
+            
+            previewHTML += `</div>`;
+            previewElement.innerHTML = previewHTML;
+        }
+        
+        function generateHandbook() {
+            // In a real application, this would do more processing
+            // For this demo, we'll just show a notification
+            showNotification('Handbook generated successfully!');
+            updatePreview();
+        }
+        
+        function exportHTML() {
+            const handbookElement = document.getElementById('handbook-preview');
+            const htmlContent = handbookElement.innerHTML;
+            const blob = new Blob([`<!DOCTYPE html><html><head><title>Employee Handbook</title></head><body>${htmlContent}</body></html>`], { type: 'text/html' });
+            
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'employee_handbook.html';
+            a.click();
+            
+            showNotification('HTML exported successfully!');
+        }
+        
+        function exportPDF() {
+            const handbookElement = document.getElementById('handbook-preview');
+            
+            const opt = {
+                margin: 10,
+                filename: 'employee_handbook.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            
+            html2pdf().set(opt).from(handbookElement).save();
+            showNotification('PDF exported successfully!');
+        }
+        
+        function exportPNG() {
+            const handbookElement = document.getElementById('handbook-preview');
+            
+            html2canvas(handbookElement).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const a = document.createElement('a');
+                a.href = imgData;
+                a.download = 'employee_handbook.png';
+                a.click();
+            });
+            
+            showNotification('PNG exported successfully!');
+        }
+        
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Add event listeners to update preview as user types
+        document.querySelectorAll('input, textarea').forEach(element => {
+            element.addEventListener('input', updatePreview);
+        });
+        
+        // Initialize the preview
+        updatePreview();
+    </script>
+</body>
+</html>
